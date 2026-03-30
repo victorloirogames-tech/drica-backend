@@ -1,19 +1,13 @@
-import Stripe from "stripe";
+const Stripe = require("stripe");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-export default async function handler(req, res) {
-  // TESTE DE VIDA (GET)
-  if (req.method === "GET") {
-    return res.status(200).json({ message: "API funcionando 🚀" });
-  }
-
-  // BLOQUEIA OUTROS MÉTODOS
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método não permitido" });
-  }
-
+module.exports = async (req, res) => {
   try {
+    if (req.method !== "POST") {
+      return res.status(200).json({ message: "API funcionando 🚀" });
+    }
+
     const { amount } = req.body || {};
 
     if (!amount) {
@@ -21,7 +15,7 @@ export default async function handler(req, res) {
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Number(amount),
+      amount: amount,
       currency: "brl",
     });
 
@@ -36,4 +30,4 @@ export default async function handler(req, res) {
       error: error.message,
     });
   }
-}
+};
