@@ -1,10 +1,11 @@
-import Stripe from "stripe";
+const Stripe = require("stripe");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
+  // Permitir apenas POST
   if (req.method !== "POST") {
-    return res.status(200).json({ message: "API funcionando 🚀" });
+    return res.status(405).json({ error: "Método não permitido" });
   }
 
   try {
@@ -19,11 +20,14 @@ export default async function handler(req, res) {
       currency: "brl",
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       clientSecret: paymentIntent.client_secret,
     });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    console.error("ERRO:", error);
+    return res.status(500).json({
+      error: error.message,
+    });
   }
-}
+};
