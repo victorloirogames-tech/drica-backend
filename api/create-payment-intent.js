@@ -3,31 +3,32 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
+  // 🔥 LIBERAR CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método não permitido" });
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
-    const { amount, order_id } = req.body;
-
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: "Valor inválido" });
-    }
+    const { amount } = req.body;
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
+      amount,
       currency: "brl",
-      metadata: {
-        order_id: order_id || "pedido_sem_id",
-      },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       clientSecret: paymentIntent.client_secret,
     });
-
-  } catch (err) {
-    console.error("Erro:", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Erro ao criar pagamento" });
   }
 }
