@@ -1,21 +1,23 @@
+import Stripe from "stripe";
+import { buffer } from "micro";
+
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-const Stripe = require("stripe");
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
+  const buf = await buffer(req);
   const sig = req.headers["stripe-signature"];
 
   let event;
 
   try {
     event = stripe.webhooks.constructEvent(
-      req.body,
+      buf,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -24,14 +26,13 @@ module.exports = async (req, res) => {
     return res.status(400).send(`Erro: ${err.message}`);
   }
 
-  // 🔥 QUANDO PAGAMENTO FOR CONFIRMADO
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object;
 
     console.log("✅ PAGAMENTO APROVADO:", paymentIntent.id);
 
-    // 👉 AQUI você vai marcar como pago depois
+    // 👉 Aqui depois você salva no banco
   }
 
   res.status(200).json({ received: true });
-};
+}
