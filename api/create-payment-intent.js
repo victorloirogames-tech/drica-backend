@@ -3,7 +3,7 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
-  // 👇 LIBERA CORS
+  // 🔥 CORRIGE O ERRO DE CONEXÃO
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -17,18 +17,18 @@ export default async function handler(req, res) {
   }
 
   try {
+    const { amount } = req.body;
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 3890,
+      amount: amount,
       currency: "brl",
-      automatic_payment_methods: { enabled: true },
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       clientSecret: paymentIntent.client_secret,
     });
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro ao criar pagamento" });
   }
 }
