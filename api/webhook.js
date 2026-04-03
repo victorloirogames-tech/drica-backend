@@ -22,16 +22,29 @@ export default async function handler(req, res) {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error("Erro webhook:", err.message);
+    console.error("❌ Erro webhook:", err.message);
     return res.status(400).send(`Erro: ${err.message}`);
   }
 
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object;
+  // 🔥 EVENTOS IMPORTANTES
+  switch (event.type) {
+    case "checkout.session.completed":
+      const session = event.data.object;
+      console.log("✅ CHECKOUT FINALIZADO:", session.id);
 
-    console.log("✅ PAGAMENTO APROVADO:", paymentIntent.id);
+      // 👉 Aqui é o mais importante
+      // Salvar pedido como pago no banco
 
-    // 👉 Aqui depois você salva no banco
+      break;
+
+    case "payment_intent.succeeded":
+      const paymentIntent = event.data.object;
+      console.log("💰 PAGAMENTO CONFIRMADO:", paymentIntent.id);
+
+      break;
+
+    default:
+      console.log(`⚠️ Evento não tratado: ${event.type}`);
   }
 
   res.status(200).json({ received: true });
