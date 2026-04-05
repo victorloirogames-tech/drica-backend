@@ -26,25 +26,23 @@ export default async function handler(req, res) {
     return res.status(400).send(`Erro: ${err.message}`);
   }
 
-  // 🔥 EVENTOS IMPORTANTES
+  console.log("📩 Evento recebido:", event.type);
+
   switch (event.type) {
-    case "checkout.session.completed":
-      const session = event.data.object;
-      console.log("✅ CHECKOUT FINALIZADO:", session.id);
-
-      // 👉 Aqui é o mais importante
-      // Salvar pedido como pago no banco
-
-      break;
-
     case "payment_intent.succeeded":
       const paymentIntent = event.data.object;
-      console.log("💰 PAGAMENTO CONFIRMADO:", paymentIntent.id);
 
+      console.log("💰 PAGAMENTO APROVADO:", paymentIntent.id);
+
+      // 👉 AQUI tu atualiza teu pedido (futuro)
+      break;
+
+    case "payment_intent.payment_failed":
+      console.log("❌ PAGAMENTO FALHOU");
       break;
 
     default:
-      console.log(`⚠️ Evento não tratado: ${event.type}`);
+      console.log("⚠️ Evento ignorado:", event.type);
   }
 
   res.status(200).json({ received: true });
